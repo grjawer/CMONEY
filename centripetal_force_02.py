@@ -33,6 +33,7 @@ import numpy as np
 import scipy
 from scipy.signal import find_peaks
 import math
+import csv
 
 def read_adc(channel):
     if not 0 <= channel <= 7:
@@ -173,7 +174,37 @@ go = 'NO'
 while go != 'YES':
     print("Let's find centripetal acceleration! Make sure everything is plugged in, the mass is in place, and the laser is on.")
     go = input("Are you ready? Enter YES or NO (in all caps):")
-    
+
+Masses = []  
+Radii = []
+Omegas = []
+Forces = []
+
 Mass, Radius, Omega, Force = Find_cforce()
+
+Masses.append(Mass)
+Radii.append(Radius)
+Omegas.append(Omega)
+Forces.append(Force)
+
+again = 'YES'
+while again == 'YES':
+    again = input("Would you like to try again with a different mass or different speed? Enter YES or NO (in all caps):")
+    if again == 'NO':
+        pass
+    Mass1, Radius1, Omega1, Force1 = Find_cforce()
+    Masses.append(Mass1)
+    Radii.append(Radius1)
+    Omegas.append(Omega1)
+    Forces.append(Force1)
+
+# write to csv:
+filename = '/home/pi/Desktop/' + str(time.time()) + '.csv'
+with open(filename, ’w’, newline=’’) as csvfile:
+    writer = csv.writer(csvfile, delimiter=’ ’, quotechar=’|’, quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(Masses)
+    writer.writerow(Radii)
+    writer.writerow(Omegas)
+    writer.writerow(Forces)
     
-    
+print('Thank you for using CMONEY! Your data is available as a csv file on the Pi desktop.')    
