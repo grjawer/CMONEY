@@ -32,7 +32,6 @@ import RPi.GPIO as GPIO
 import numpy as np
 import scipy
 from scipy.signal import find_peaks
-import pandas as pd
 import math
 
 def read_adc(channel):
@@ -96,7 +95,7 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
         GPIO.cleanup()
 
     distance = 0.375
-    radius = distance - davg
+    radius = distance - davg    #radius is distance from shaft to mass = (total distance from sensor to shaft) - (distance from sensor to mass)
     print('Radius is ', radius, 'meters')
 
     #Set up motor
@@ -137,12 +136,10 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     volt = []
     print("Getting data now... press Ctrl + c when done")
     t0 = time.time()            #inital time
-    try:
-        while 1:
+    for i in range(10):         #spin for about 10 seconds
             v_volt = read_adc(1) * 3.3 / 1024   #get voltage from photodiode circuit input to channel 1
-            volt.append(v_volt)                 #add voltage to list, light is hitting sensor if voltage>3
-    except KeyboardInterrupt:
-        pass
+            volt.append(v_volt)                 #add voltage to list
+            time.sleep(1)
     tf = time.time()            #final time
 
     print("Now Stop")
@@ -153,9 +150,9 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     GPIO.cleanup()
 
     #Calculate centripetal force
-    peaks, _ = find_peaks(volt, height=0.35, distance = 2000)
-    rotations = len(peaks)
-    t_total = tf - t0
+    peaks, _ = find_peaks(volt, height=0.35, distance = 2000)   #light is hitting sensor if voltage>0.35, with more than 2000 units between peaks
+    rotations = len(peaks)      #number of peaks = number of rotations
+    t_total = tf - t0           #total time for rotations
     print('Total time was', t_total, 'seconds')
     print('And', rotations, 'rotations.')
     frequency = rotations / t_total         #frequency!
@@ -167,7 +164,7 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     force = mass * radius * omega**2         #CENTRIPETAL FORCE!
     print('Centripetal force is:', force, 'Newtons!')
 
-    #plt.plot(volt)
+    #plt.plot(volt) 
     #plt.show()
 
     return mass, radius, omega, force
