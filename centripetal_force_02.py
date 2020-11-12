@@ -168,7 +168,7 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     #plt.plot(volt) 
     #plt.show()
 
-    return mass, radius, omega, force
+    return mass, radius, frequency, force
 
 go = 'NO'
 while go != 'YES':
@@ -177,14 +177,14 @@ while go != 'YES':
 
 Masses = []  
 Radii = []
-Omegas = []
+Frequencies = []
 Forces = []
 
-Mass, Radius, Omega, Force = Find_cforce()
+Mass, Radius, Frequency, Force = Find_cforce()
 
 Masses.append(Mass)
 Radii.append(Radius)
-Omegas.append(Omega)
+Frequencies.append(Frequency)
 Forces.append(Force)
 
 again = 'YES'
@@ -192,10 +192,10 @@ while again == 'YES':
     again = input("Would you like to try again with a different mass or different speed? Enter YES or NO (in all caps):")
     if again == 'NO':
         pass
-    Mass1, Radius1, Omega1, Force1 = Find_cforce()
+    Mass1, Radius1, Frequency1, Force1 = Find_cforce()
     Masses.append(Mass1)
     Radii.append(Radius1)
-    Omegas.append(Omega1)
+    Frequencies.append(Frequency1)
     Forces.append(Force1)
 
 # write to csv:
@@ -204,7 +204,7 @@ with open(filename, ’w’, newline=’’) as csvfile:
     writer = csv.writer(csvfile, delimiter=’ ’, quotechar=’|’, quoting=csv.QUOTE_MINIMAL)
     writer.writerow(Masses)
     writer.writerow(Radii)
-    writer.writerow(Omegas)
+    writer.writerow(Frequencies)
     writer.writerow(Forces)
     
 print('Thank you for using CMONEY! Your data is available as a csv file on the Pi desktop.')    
