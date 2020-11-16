@@ -143,7 +143,7 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     GPIO.cleanup()
 
     #Calculate centripetal force
-    peaks, _ = find_peaks(volt, height=0.25, distance = 500)   #light is hitting sensor if voltage>0.35, with more than 2000 units between peaks
+    peaks, _ = find_peaks(volt, height=0.35, distance = 500)   #light is hitting sensor if voltage>0.35, with more than 2000 units between peaks
     rotations = len(peaks)      #number of peaks = number of rotations
     t_total = tf - t0           #total time for rotations
     print('Total time was', t_total, 'seconds')
@@ -191,7 +191,7 @@ again = 'YES'
 while again == 'YES':
     again = input("Would you like to try again with a different mass or different speed? Enter YES or NO (in all caps):")
     if again == 'NO':
-        pass
+        break
     Mass1, Radius1, Frequency1, Force1 = Find_cforce()
     Masses.append(Mass1)
     Radii.append(Radius1)
