@@ -45,17 +45,10 @@ def read_adc(channel):
     data10bit = ((data[1] & 3) << 8) + data[2] #shfit bits to get the 10 bit data
     return data10bit
 
-def Find_cforce():  #Gets centripetal force from user input of given mass and set speed. Returns mass, radius, angular velocity, and centripetal forc
+def Find_cforce():  #Gets centripetal force from user input of given mass and set speed. Returns mass, radius, frequency, and centripetal forc
 
-    mass = int(input("Please enter the mass in kilograms:"))
-
-    #Set up communication with photodiode circuit
-    spi = spidev.SpiDev() #open spi bus
-    spi.open(0,0) #open(bus, device)
-    spi.max_speed_hz=1000000
-    spi.mode = 0b00 #spi modes; 00,01,10,11
-    print("Photodiode output is now set up.")
-
+    mass = float(input("Please enter the mass in kilograms, making sure to account for the mass holder:"))
+    
     #Set up communication with distance sensor and get initial radius
     GPIO.setmode(GPIO.BCM)
     trig = 5
@@ -65,10 +58,11 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     T_room = 26 #room temperature is 26 C.
     print('Getting radius...')
     #print (f'{trig} is the trigger, and {echo} is the echo')
+
     try:
         distlist = []
 
-        for i in range(0,50):
+        for i in range(0,30):
             GPIO.output(trig,GPIO.LOW)
             time.sleep (0.2) # waiting for 1 second to start
             GPIO.output(trig,GPIO.HIGH)
@@ -81,10 +75,8 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
             t = t1-t0 #calculate the time interval
             v = 20.05* math.sqrt(273.16+T_room)
             d = t*v/2 #calculate the distance in m
-            dm = round(d,2)
-            dcm = round(100*d, 2)
-            din = round(39.37*d,2)
-            #print (f'The distance is {round(d,2)} m, {round(100*d, 2)}cm, {round(39.37*d,2)}inches.\n')
+            dm = d + 0.01   #to account for thickness of mass holder
+            #print (f'The distance is {round(d,2)} m')
 
             distlist.append(dm)
 
@@ -135,12 +127,12 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
 
     #Gather data for frequency
     volt = []
-    print("Getting data now... press Ctrl + c when done")
+    print("Getting data now... please wait.")
     t0 = time.time()            #inital time
-    for i in range(10):         #spin for about 10 seconds
-            v_volt = read_adc(1) * 3.3 / 1024   #get voltage from photodiode circuit input to channel 1
-            volt.append(v_volt)                 #add voltage to list
-            time.sleep(1)
+    for i in range(10000):         #spin for about 10 seconds
+        v_volt = read_adc(1) * 3.3 / 1024   #get voltage from photodiode circuit input to channel 1
+        volt.append(v_volt)                 #add voltage to list
+        time.sleep(.001)
     tf = time.time()            #final time
 
     print("Now Stop")
@@ -151,7 +143,7 @@ def Find_cforce():  #Gets centripetal force from user input of given mass and se
     GPIO.cleanup()
 
     #Calculate centripetal force
-    peaks, _ = find_peaks(volt, height=0.35, distance = 2000)   #light is hitting sensor if voltage>0.35, with more than 2000 units between peaks
+    peaks, _ = find_peaks(volt, height=0.25, distance = 500)   #light is hitting sensor if voltage>0.35, with more than 2000 units between peaks
     rotations = len(peaks)      #number of peaks = number of rotations
     t_total = tf - t0           #total time for rotations
     print('Total time was', t_total, 'seconds')
@@ -174,6 +166,14 @@ go = 'NO'
 while go != 'YES':
     print("Let's find centripetal acceleration! Make sure everything is plugged in, the mass is in place, and the laser is on.")
     go = input("Are you ready? Enter YES or NO (in all caps):")
+
+#Set up communication with photodiode circuit
+spi = spidev.SpiDev() #open spi bus
+spi.open(0,0) #open(bus, device)
+spi.max_speed_hz=1000000
+spi.mode = 0b00 #spi modes; 00,01,10,11
+print("Photodiode output is now set up.")
+
 
 Masses = []  
 Radii = []
@@ -200,11 +200,11 @@ while again == 'YES':
 
 # write to csv:
 filename = '/home/pi/Desktop/' + str(time.time()) + '.csv'
-with open(filename, ’w’, newline=’’) as csvfile:
-    writer = csv.writer(csvfile, delimiter=’ ’, quotechar=’|’, quoting=csv.QUOTE_MINIMAL)
+with open(filename, 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(Masses)
     writer.writerow(Radii)
     writer.writerow(Frequencies)
     writer.writerow(Forces)
     
-print('Thank you for using CMONEY! Your data is available as a csv file on the Pi desktop.')    
+print('Thank you for using CMONEY! Your data is available as a csv file on the Pi desktop.')   
